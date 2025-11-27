@@ -43,10 +43,10 @@ class Value:
             "only supporting int/float powers for now"
         )
         func = self.data**other
-        out = Value(data=func, _children=(self, other), _op=f"**{other}")
+        out = Value(data=func, _children=(self,), _op=f"**{other}")
 
         def _derivative():
-            self.grad += (other * self.data ** (other - 1)) * out.grad
+            self.grad += (other * self.data ** (other - 1.0)) * out.grad
 
         out._backward = _derivative
         return out
@@ -62,11 +62,11 @@ class Value:
         return out
 
     def tanh(self):
-        func = (math.exp(2 * self.data) - 1) / (math.exp(2 * self.data) + 1)
+        func = (math.exp(2 * self.data) - 1.0) / (math.exp(2 * self.data) + 1.0)
         out = Value(data=func, _children=(self,), _op="tanh")
 
         def _derivative():
-            self.grad += (1 - func**2) * out.grad
+            self.grad += (1.0 - func**2) * out.grad
 
         out._backward = _derivative
         return out
@@ -76,7 +76,7 @@ class Value:
         out = Value(data=func, _children=(self,), _op="sigmoid")
 
         def _derivative():
-            self.grad += func * (1 - func) * out.grad
+            self.grad += func * (1.0 - func) * out.grad
 
         out._backward = _derivative
         return out
@@ -86,7 +86,7 @@ class Value:
         out = Value(data=func, _children=(self,), _op="relu")
 
         def _derivative():
-            self.grad += 0 * out.grad if self.data < 0 else 1 * out.grad
+            self.grad += 0 * out.grad if self.data < 0 else 1.0 * out.grad
 
         out._backward = _derivative
         return out
@@ -96,20 +96,20 @@ class Value:
         out = Value(data=func, _children=(self,), _op="leaky_relu")
 
         def _derivative():
-            self.grad += 0.01 * out.grad if self.data < 0 else 1 * out.grad
+            self.grad += 0.01 * out.grad if self.data < 0 else 1.0 * out.grad
 
         out._backward = _derivative
         return out
 
     def elu(self, alpha: float = 0.02):
-        func = alpha * (math.exp(self.data) - 1) if self.data <= 0 else self.data
+        func = alpha * (math.exp(self.data) - 1.0) if self.data <= 0 else self.data
         out = Value(data=func, _children=(self,), _op="elu")
 
         def _derivative():
             self.grad += (
                 alpha * math.exp(self.data) * out.grad
                 if self.data < 0
-                else 1 * out.grad
+                else 1.0 * out.grad
             )
 
         out._backward = _derivative
@@ -128,7 +128,7 @@ class Value:
 
         build_topo(self)
 
-        self.grad = 1
+        self.grad = 1.0
         for node in reversed(topo):
             node._backward()
 
